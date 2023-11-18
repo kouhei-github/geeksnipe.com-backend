@@ -9,6 +9,8 @@ from routes.index import (
 
 from config.index import Base, engine
 
+# テーブルを全て削除
+# Base.metadata.drop_all(bind=engine)
 
 Base.metadata.create_all(bind=engine)
 
