@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+  python:
+    image: "geek-snipe-python-image"
+    container_name: "geek-snipe-python-container"
+    build:
+      context: .
+      dockerfile: ./container/python/Dockerfile
+    tty: true
+    ports:
+      - "8000:8000"
+    env_file:
+      - ".env"
+    volumes:
+      - ./source:/var/task
+    working_dir: /var/task
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: sh /tmp/entrypoint.sh
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOTPASS}
+      MYSQL_DATABASE: ${DATABASE}
+      MYSQL_USER: ${USERNAME}
+      MYSQL_PASSWORD: ${USERPASS}
+      TZ: 'Asia/Tokyo'
+      LC_ALL: 'ja_JP.UTF-8'
+      LANG: "ja_JP.UTF-8"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    env_file:
+      - .env
+    volumes:
+      - ./container/db/data:/var/lib/mysql
+      - ./container/db/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - ${PORT}:3306
+    expose:
+      - ${PORT}
